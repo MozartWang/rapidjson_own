@@ -41,6 +41,11 @@
 #define RAPIDJSON_LITTLEENDIAN 0
 #define RAPIDJSON_BIGENDIAN    1
 
+////////////////////////////////////////////////////////////
+//RAPIDJSON_ALIGN
+#ifndef RAPIDJSON_ALIGN
+#define RAPIDJSON_ALIGN(x) ((x + 3u) & ~3u)
+#endif
 
 ////////////////////////////////////////////////////////////
 //RAPIDJSON_NO_SIZETYPEDEFINE
