@@ -76,6 +76,10 @@ RAPIDJSON_NAMESPACE_END
 } while((void)0, 0)
 
 ///////////////////////////////////////////////////////////
+//C++11 feature
+#define RAPIDJSON_NOEXCEPT
+
+///////////////////////////////////////////////////////////
 // new/delete
 #ifndef RAPIDJSON_NEW
 #define RAPIDJSON_NEW(x) new x
@@ -86,6 +90,11 @@ RAPIDJSON_NAMESPACE_END
 
 ///////////////////////////////////////////////////////////
 //  Allocators and Encodings
+#include "allocators.h"
+#include "encodings.h"
+
+
+///////////////////////////////////////////////////////////
 RAPIDJSON_NAMESPACE_BEGIN
 template<typename Stream>
 struct StreamTraits {
