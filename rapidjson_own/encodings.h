@@ -62,6 +62,33 @@ struct UTF8 {
 #undef TAIL
     }
 
+
+    template <typename InputStream, typename OutputStream>
+    static bool Validate(InputStream& is, OutputStream& os) {
+#define COPY() os.Put(c = is.Take())
+#define TRANS(mask) result &= ((GetRange((unsigned char)c) & mask) != 0)
+#define TAIL() COPY(); TRANS(0x70)
+        Ch c;
+        COPY();
+        if (!(c & 0x80))
+            return true;
+
+        bool result = true;
+        switch (GetRange((unsigned char)c)) {
+            case 2: TAIL(); return result;
+            case 3: TAIL(); TAIL(); return result;
+            case 4: COPY(); TRANS(0x50); TAIL(); return result;
+            case 5: COPY(); TRANS(0x10); TAIL(); TAIL(); return result;
+            case 6: TAIL(); TAIL(); TAIL(); return result;
+            case 10: COPY(); TRANS(0x20); TAIL(); return result;
+            case 11: COPY(); TRANS(0x60); TAIL(); TAIL(); return result;
+            default: return false;
+        }
+#undef COPY
+#undef TRANS
+#undef TAIL
+    }
+
     static unsigned char GetRange(unsigned char c) {
         static const unsigned char type[] = {
             0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -80,8 +107,39 @@ struct UTF8 {
 
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////
+// Transcoder
+//
+// ! Encoding conver
+template<typename SourceEncoding, typename TargetEncoding>
+struct Transcoder {
+    template<typename InputStream, typename OutputStream>
+    static bool Transcode(InputStream& is, OutputStream& os) {
+        unsigned codepoint;
+        if (!SourceEncoding::Decode(is, &codepoint))
+            return false;
+        TargetEncoding::Encode(os, codepoint);
+        return true;
+    }
 
+    template<typename InputStream, typename OutputStream>
+    static bool Validate(InputStream& is, OutputStream& os) {
+        return Transcode(is, os);
+    }
+};
 
+template<typename Encoding>
+struct Transcoder<Encoding, Encoding> {
+    template<typename InputStream, typename OutputStream>
+    static bool Transcode(InputStream& is, OutputStream& os) {
+        os.Put(is.Take());
+        return true;
+    }
+    template<typename InputStream, typename OutputStream>
+    static bool Validate(InputStream& is, OutputStream& os) {
+        return Encoding::Validate(is, os);
+    }
+};
 
 
 RAPIDJSON_NAMESPACE_END
