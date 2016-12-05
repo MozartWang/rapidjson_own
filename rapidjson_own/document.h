@@ -38,6 +38,11 @@ private:
     GenericStringRef(CharType (&str)[N]);
 };
 
+template<typename CharType>
+inline GenericStringRef<CharType> StringRef(const CharType* str) {
+    return GenericStringRef<CharType>(str, internal::StrLen(str));
+}
+
 
 
 
